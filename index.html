@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Seller Dashboard</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Add New Product</h2>
+            <form id="productForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Product Image</label>
+                    <input type="file" id="productImage" accept="image/*" class="w-full p-2 border rounded" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Product Name</label>
+                    <input type="text" id="productName" class="w-full p-2 border rounded" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Stock Quantity</label>
+                    <input type="number" id="stockQuantity" class="w-full p-2 border rounded" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Original Price</label>
+                    <input type="number" id="originalPrice" class="w-full p-2 border rounded" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Discount Price</label>
+                    <input type="number" id="discountPrice" class="w-full p-2 border rounded" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Description</label>
+                    <textarea id="description" class="w-full p-2 border rounded" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Upload Product
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.8.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.8.0/firebase-storage-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.8.0/firebase-database-compat.min.js"></script>
+
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBTvxdG5xX_54ndGNYZd9l4iCZJalCSO74",
+            authDomain: "aaaaa-b5f62.firebaseapp.com",
+            databaseURL: "https://aaaaa-b5f62-default-rtdb.firebaseio.com",
+            projectId: "aaaaa-b5f62",
+            storageBucket: "aaaaa-b5f62.appspot.com",
+            messagingSenderId: "484195823337",
+            appId: "1:484195823337:web:c063974942a12ef0dd8a78",
+            measurementId: "G-XHTQN71J76"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+        const database = firebase.database();
+
+        // Handle form submission
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const imageFile = document.getElementById('productImage').files[0];
+            const productName = document.getElementById('productName').value;
+            const stockQuantity = document.getElementById('stockQuantity').value;
+            const originalPrice = document.getElementById('originalPrice').value;
+            const discountPrice = document.getElementById('discountPrice').value;
+            const description = document.getElementById('description').value;
+
+            try {
+                // Upload image to Firebase Storage
+                const storageRef = storage.ref('product-images/' + Date.now() + '-' + imageFile.name);
+                const snapshot = await storageRef.put(imageFile);
+                const imageUrl = await snapshot.ref.getDownloadURL();
+
+                // Save product data to Realtime Database
+                const productRef = database.ref('products').push();
+                await productRef.set({
+                    imageUrl,
+                    productName,
+                    stockQuantity,
+                    originalPrice,
+                    discountPrice,
+                    description,
+                    timestamp: Date.now()
+                });
+
+                alert('Product uploaded successfully!');
+                document.getElementById('productForm').reset();
+            } catch (error) {
+                console.error('Error uploading product:', error);
+                alert('Error uploading product. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
